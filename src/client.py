@@ -88,8 +88,23 @@ class Client:
                 ]
             )
 
+    def get_travel_options(self):
+        return
+
+    def search_for_station(self, search_string):
+        return
+
+    def get_departures_and_arrivals(self, station):
+        return
+
+    def get_traffic_means(self, station):
+        return
+
+    def get_journey_path(self, start, end):
+        return
+
 
 skanetrafiken = Client()
 # res = skane.get_start_to_end(start="malmö", end="lund")
 # res = skanetrafiken.get_nearest_stations(6167930, 1323215, 5000)
-print(res)
+# print(res)
