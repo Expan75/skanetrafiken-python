@@ -7,13 +7,11 @@ import xmltodict
 from pprint import pprint
 
 
-BASE_URL = "http://www.labs.skanetrafiken.se/v2.2/"
-
-
 class Client:
     """Client wrapper around Skane API calls. Each method corresponds to get calls on endpoints"""
 
     def __init__(self):
+        self.BASE_URL = "http://www.labs.skanetrafiken.se/v2.2/"
         self.preserve_raw_json = False
         self.current_modes_of_transport = {}
 
@@ -32,7 +30,10 @@ class Client:
             Exception("Please provide a startpoint and an endpoint")
 
         # setup url, send request and return formatted response
-        url = BASE_URL + f"querypage.asp?inpPointTo={str(end)}&inpPointFr={str(start)}"
+        url = (
+            self.BASE_URL
+            + f"querypage.asp?inpPointTo={str(end)}&inpPointFr={str(start)}"
+        )
         xml_string = req.get(url).text
         parsed_xml = xmltodict.parse(xml_string)
 
@@ -73,7 +74,7 @@ class Client:
             )
 
         # setup call and return parsed respose
-        url = BASE_URL + f"neareststation.asp?x={x}&y={y}&Radius={radius}"
+        url = self.BASE_URL + f"neareststation.asp?x={x}&y={y}&Radius={radius}"
         xml_string = req.get(url).text
         parsed_xml = xmltodict.parse(xml_string)
 
@@ -127,9 +128,8 @@ class Client:
         """Utlity endpoint call for getting all available modes of transportation. 
         Primarily used to update buffer. Returns json
         """
-        # Probably only needs to be called once every now and then so is buffered in instance state
         # setup call and return parsed respose
-        url = BASE_URL + f"trafficmeans.asp"
+        url = self.BASE_URL + f"trafficmeans.asp"
         xml_string = req.get(url).text
         parsed_xml = xmltodict.parse(xml_string)
 
