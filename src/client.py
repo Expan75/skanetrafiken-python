@@ -2,15 +2,12 @@
 import json
 import os
 import requests as req
+from datetime import datetime
 import xmltodict
+from pprint import pprint
 
 
 BASE_URL = "http://www.labs.skanetrafiken.se/v2.2/"
-
-# Helper function
-def xml_parser(xml_string):
-    """ Utility function for parsing xml_strings into json"""
-    return json.dumps(xmltodict.parse(xml_string))
 
 
 class Client:
@@ -18,6 +15,7 @@ class Client:
 
     def __init__(self):
         self.preserve_raw_json = False
+        self.current_modes_of_transport = {}
 
     def get_start_to_end(self, start, end):
         """Restlike endpoint method for getting a travelplan between 2 locations/stations/busstops.
@@ -82,23 +80,67 @@ class Client:
         if self.preserve_raw_json:
             return json.dumps(parsed_xml)
         else:
+            # avoids the unessecary nesting
             return json.dumps(
                 parsed_xml["soap:Envelope"]["soap:Body"]["GetNearestStopAreaResponse"][
                     "GetNearestStopAreaResult"
                 ]
             )
 
-    def get_travel_options(self):
+    def get_available_trips(
+        self,
+        point_to,
+        point_from,
+        transport_mode,
+        cmd_action="search",
+        last_start=None,
+        first_start=None,
+        datetime=datetime.now().strftime("%Y-%m-%d-%H:%M"),
+        num_of_journeys=10,
+    ):
+        """Get travel options from getting between A to B (sel points)
+
+        Args:
+            point_to ([string]): destination point name|id|type
+            point_from ([string]): departure point name|id|type
+            # transport_mode ([type]): [Optional] Sum of linetype ids retrieved from trafficmeans method NOT IMPLEMENTED
+            cmd_action ([string]): search|next|previous set of journeys
+            last_start ([string]): [Optional] yyyy-mm-dd-hh:mm of last journey in previous results (used in conjunction with cmdAction = next)
+            first_start ([string ]): [Optional] yyyy-mm-dd-hh:mm of first journey in previous results (used in conjunction with cmdAction = previous)
+            datetime ([datetime]): [Optional] time for journey: yyyy-mm-dd-hh:mm, defaults to now
+            num_of_journeys ([int]): [Optional] No of journeys in result, defaults to 10
+        """
+
+        # Error handling of less common request arguments
+        if (not last_start) & (not first_start):
+            pass
+
         return
 
     def search_for_station(self, search_string):
         return
 
-    def get_departures_and_arrivals(self, station):
+    def get_departures_and_arrivals(self):
         return
 
-    def get_traffic_means(self, station):
-        return
+    def get_traffic_modes(self):
+        """Utlity endpoint call for getting all available modes of transportation. 
+        Primarily used to update buffer. Returns json
+        """
+        # Probably only needs to be called once every now and then so is buffered in instance state
+        # setup call and return parsed respose
+        url = BASE_URL + f"trafficmeans.asp"
+        xml_string = req.get(url).text
+        parsed_xml = xmltodict.parse(xml_string)
+
+        if self.preserve_raw_json:
+            return json.dumps(parsed_xml)
+        else:
+            return json.dumps(
+                parsed_xml["soap:Envelope"]["soap:Body"]["GetMeansOfTransportResponse"][
+                    "GetMeansOfTransportResult"
+                ]["TransportModes"]["TransportMode"]
+            )
 
     def get_journey_path(self, start, end):
         return
@@ -107,4 +149,6 @@ class Client:
 skanetrafiken = Client()
 # res = skane.get_start_to_end(start="malmö", end="lund")
 # res = skanetrafiken.get_nearest_stations(6167930, 1323215, 5000)
-# print(res)
+print(skanetrafiken.current_modes_of_transport)
+skanetrafiken.current_modes_of_transport = skanetrafiken.get_traffic_modes()
+print(skanetrafiken.current_modes_of_transport)
