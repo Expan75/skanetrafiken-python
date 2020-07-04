@@ -88,6 +88,67 @@ class Client:
                 ]
             )
 
+    def get_departures_and_arrivals(
+        self, stop_id, show_arrivals=False, custom_datetime_tuple=None,
+    ):
+        """[summary]
+
+        Args:
+            stop_id ([int]): []
+            show_arrivals (bool, optional): [description]. Defaults to False.
+            custom_datetime_tuple (tuple with strings (yyyy-mm-dd, hh:mm), optional): [description]. Defaults to None (defaults to now on SkaneAPIs side).
+
+        Returns:
+            [type]: [description]
+        """
+        # Error handling
+        assert (stop_id > 0) & (type(stop_id) == int), "Please provide a valid stop ID."
+
+        # toggle arrivals XOR departures
+        query_direction_toggle = int(show_arrivals)
+
+        url = (
+            self.BASE_URL
+            + f"stationresults.asp?selPointFrKey={stop_id}&selDirection={query_direction_toggle}"
+        )
+        # append datetime query but only for departures searches
+        if datetime:
+            if not show_arrivals:
+                input_date, input_time = custom_datetime_tuple
+                url += f"&inpDate={input_date}&inpTime={input_time}"
+
+        # Setup request and parse results
+        xml_string = req.get(url).text
+        parsed_xml = xmltodict.parse(xml_string)
+
+        if self.preserve_raw_json:
+            return json.dumps(parsed_xml)
+        else:
+            # avoids the unessecary nesting
+            return json.dumps(
+                parsed_xml["soap:Envelope"]["soap:Body"]["GetDepartureArrivalResponse"][
+                    "GetDepartureArrivalResult"
+                ]
+            )
+
+    def get_traffic_modes(self):
+        """Utlity endpoint call for getting all available modes of transportation. 
+        Primarily used to update buffer. Returns json
+        """
+        # setup call and return parsed respose
+        url = self.BASE_URL + f"trafficmeans.asp"
+        xml_string = req.get(url).text
+        parsed_xml = xmltodict.parse(xml_string)
+
+        if self.preserve_raw_json:
+            return json.dumps(parsed_xml)
+        else:
+            return json.dumps(
+                parsed_xml["soap:Envelope"]["soap:Body"]["GetMeansOfTransportResponse"][
+                    "GetMeansOfTransportResult"
+                ]["TransportModes"]["TransportMode"]
+            )
+
     def get_available_trips(
         self,
         point_to,
@@ -121,34 +182,16 @@ class Client:
     def search_for_station(self, search_string):
         return
 
-    def get_departures_and_arrivals(self):
-        return
-
-    def get_traffic_modes(self):
-        """Utlity endpoint call for getting all available modes of transportation. 
-        Primarily used to update buffer. Returns json
-        """
-        # setup call and return parsed respose
-        url = self.BASE_URL + f"trafficmeans.asp"
-        xml_string = req.get(url).text
-        parsed_xml = xmltodict.parse(xml_string)
-
-        if self.preserve_raw_json:
-            return json.dumps(parsed_xml)
-        else:
-            return json.dumps(
-                parsed_xml["soap:Envelope"]["soap:Body"]["GetMeansOfTransportResponse"][
-                    "GetMeansOfTransportResult"
-                ]["TransportModes"]["TransportMode"]
-            )
-
     def get_journey_path(self, start, end):
         return
 
 
-skanetrafiken = Client()
-# res = skane.get_start_to_end(start="malmö", end="lund")
+SkaneClient = Client()
+# res = SkaneClient.get_start_to_end(start="malmö", end="lund")
 # res = skanetrafiken.get_nearest_stations(6167930, 1323215, 5000)
-print(skanetrafiken.current_modes_of_transport)
-skanetrafiken.current_modes_of_transport = skanetrafiken.get_traffic_modes()
-print(skanetrafiken.current_modes_of_transport)
+# print(skanetrafiken.current_modes_of_transport)
+# skanetrafiken.current_modes_of_transport = skanetrafiken.get_traffic_modes()
+# print(skanetrafiken.current_modes_of_transport)
+
+# res = SkaneClient.get_departures_and_arrivals(80000, show_arrivals=True)
+# pprint(res)
