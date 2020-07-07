@@ -13,7 +13,7 @@ class Client:
     def __init__(self):
         self.BASE_URL = "http://www.labs.skanetrafiken.se/v2.2/"
         self.preserve_raw_json = False
-        self.current_modes_of_transport = {}
+        self.current_modes_of_transport = {}  # buffer
 
     def get_start_to_end(self, start, end):
         """Restlike endpoint method for getting a travelplan between 2 locations/stations/busstops.
@@ -149,6 +149,16 @@ class Client:
                 ]["TransportModes"]["TransportMode"]
             )
 
+    def search_for_station(self, search_string):
+        return
+
+    def get_journey_path(self, start, end):
+        """
+        cf     JourneyKey retrieved in response from resultspage method
+        id     SequenceNo of journey retrieved in response from resultspage method
+        """
+        return
+
     def get_available_trips(
         self,
         point_to,
@@ -177,12 +187,6 @@ class Client:
         if (not last_start) & (not first_start):
             pass
 
-        return
-
-    def search_for_station(self, search_string):
-        return
-
-    def get_journey_path(self, start, end):
         return
 
 

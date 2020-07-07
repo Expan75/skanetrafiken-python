@@ -16,3 +16,13 @@ insert installation guide here.
 ## How to contribute
 
 insert contribute guide here.
+
+## Implemented Endpoints
+
+1. sök avrese- och destinationspunkter. [Querypage]
+2. resvalssökning. [Resultspage]
+3. sök hållplats/station. [Querystation]
+4. hållplatser i närheten av en given punkt. [Neareststation]
+5. avgångstider från hållplatser. [Stationresults]
+6. aktuella trafikslag. [Trafficmeans]
+7. koordinater till resväg på karta. [Journeypath]
